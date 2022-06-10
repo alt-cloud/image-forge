@@ -1,0 +1,18 @@
+FROM {{ registry }}{{ alt_image }}:{{ branch }}
+
+MAINTAINER alt-cloud
+
+RUN apt-get update && \
+    apt-get install -y nginx apache2-html tzdata; \
+    rm -f /var/cache/apt/archives/*.rpm \
+          /var/cache/apt/*.bin \
+          /var/lib/apt/lists/*.*
+
+RUN cd /etc/nginx/sites-enabled.d && ln -s ../sites-available.d/default.conf .
+
+RUN sed -Ei 's/^([[:space:]]*listen[[:space:]]+)localhost(:80)/\10.0.0.0\2/' \
+            /etc/nginx/sites-available.d/default.conf
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
