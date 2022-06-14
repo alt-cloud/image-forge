@@ -141,7 +141,7 @@ class DockerBuilder:
 
 
 def parse_args():
-    stages = ["build", "remove_dockerfiles", "render_dockerfiles", "push"]
+    stages = ["build", "remove_dockerfiles", "render_dockerfiles"]
     arches = ["amd64", "386", "arm64", "arm", "ppc64le"]
     branches = ["p9", "p10", "sisyphus"]
     images = os.listdir(IMAGES_DIR)
