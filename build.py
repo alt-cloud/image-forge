@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import argparse
+import json
 import os
 import re
 import subprocess
@@ -21,13 +22,14 @@ class DockerBuilder:
         tag = r"(?P<tag>[\w.]+)"
         return f"^FROM (:?{registry}/)?(:?{organization}/)?{name}(:?:{tag})?$"
 
-    def __init__(self, registry, organization, latest, dry_run):
+    def __init__(self, registry, organization, latest, dry_run, images_info):
         self.from_re = re.compile(self.make_from_re())
         self.images_dir = IMAGES_DIR
         self.registry = registry
         self.organization = organization
         self.latest = latest
         self.dry_run = dry_run
+        self.images_info = images_info
 
     def forall_images(consume_result):
         def forall_images_decorator(f):
@@ -112,7 +114,12 @@ class DockerBuilder:
     def build(self, image, arches, tag):
         new_env = os.environ | {"DOCKER_BUILDKIT": "1"}
 
-        platforms = ",".join([f"linux/{a}" for a in arches])
+        info = self.images_info.get(image, {})
+        if tag in info.get("skip-branches", []):
+            return
+
+        build_arches = set(arches) - set(info.get("skip-arches", []))
+        platforms = ",".join([f"linux/{a}" for a in build_arches])
         full_name = self.render_full_tag(image, tag)
         if tag == self.latest:
             lates_name = self.render_full_tag(image, "latest")
@@ -237,10 +244,22 @@ def parse_args():
     return args
 
 
+def get_images_info():
+    result = {}
+    images_info = Path("images-info.json")
+    if images_info.exists():
+        result = json.loads(images_info.read_text())
+
+    return result
+
+
 def main():
     args = parse_args()
+    images_info = get_images_info()
     for branch in args.branches:
-        db = DockerBuilder(args.registry, args.organization, args.latest, args.dry_run)
+        db = DockerBuilder(
+            args.registry, args.organization, args.latest, args.dry_run, images_info
+        )
         if "remove_dockerfiles" in args.stages:
             db.remove_dockerfiles()
         if "render_dockerfiles" in args.stages:
