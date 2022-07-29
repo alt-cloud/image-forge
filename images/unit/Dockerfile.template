@@ -1,0 +1,15 @@
+FROM {{ registry }}{{ alt_image }}:{{ branch }}
+
+MAINTAINER alt-cloud
+
+RUN apt-get update && \
+    apt-get install -y unit curl tzdata; \
+    rm -f /var/cache/apt/archives/*.rpm \
+          /var/cache/apt/*.bin \
+          /var/lib/apt/lists/*.*
+
+EXPOSE 80
+
+COPY entrypoint.sh /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]
