@@ -1,0 +1,5 @@
+FROM {{ registry }}{{ organization }}/python:{{ branch }}
+
+MAINTAINER alt-cloud
+
+COPY distroless-builder.py .
