@@ -270,6 +270,12 @@ def main():
                     continue
 
                 if "build" in args.stages:
+                    msg = "Building image {} for branch {} anf {} arches".format(
+                        image,
+                        branch,
+                        args.arches,
+                    )
+                    print(msg)
                     db.build(image, args.arches, branch)
 
 
