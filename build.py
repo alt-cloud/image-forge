@@ -11,7 +11,7 @@ from pathlib import Path
 from jinja2 import Template
 
 
-IMAGES_DIR = Path("images")
+ORG_DIR = Path("org")
 
 
 class DockerBuilder:
@@ -22,14 +22,30 @@ class DockerBuilder:
         tag = r"(?P<tag>[\w.]+)"
         return f"^FROM (:?{registry}/)?(:?{organization}/)?{name}(:?:{tag})?$"
 
-    def __init__(self, registry, organization, latest, dry_run, images_info):
+    def __init__(
+        self,
+        registry,
+        organization,
+        overwrite_organization,
+        latest,
+        dry_run,
+        images_info,
+    ):
         self.from_re = re.compile(self.make_from_re())
-        self.images_dir = IMAGES_DIR
+        self.org_dir = ORG_DIR
+        self.images_dir = ORG_DIR / organization
         self.registry = registry
         self.organization = organization
+        if overwrite_organization:
+            self.overwrite_organization = overwrite_organization
+        else:
+            self.overwrite_organization = organization
         self.latest = latest
         self.dry_run = dry_run
         self.images_info = images_info
+
+    def full_image(self, image):
+        return f"{self.organization}/{image}"
 
     def forall_images(consume_result):
         def forall_images_decorator(f):
@@ -102,7 +118,7 @@ class DockerBuilder:
             registry = ""
         if tag:
             tag = f":{tag}"
-        return f"{registry}{self.organization}/{image}{tag}"
+        return f"{registry}{self.overwrite_organization}/{image}{tag}"
 
     def run(self, cmd, *args, **kwargs):
         if self.dry_run:
@@ -114,9 +130,16 @@ class DockerBuilder:
     def build(self, image, arches, tag):
         new_env = os.environ | {"DOCKER_BUILDKIT": "1"}
 
-        info = self.images_info.get(image, {})
+        info = self.images_info.get(self.full_image(image), {})
         if tag in info.get("skip-branches", []):
             return
+
+        msg = "Building image {} for branch {} and {} arches".format(
+            self.full_image(image),
+            tag,
+            arches,
+        )
+        print(msg)
 
         build_arches = set(arches) - set(info.get("skip-arches", []))
         platforms = ",".join([f"linux/{a}" for a in build_arches])
@@ -151,10 +174,29 @@ def parse_args():
     stages = ["build", "remove_dockerfiles", "render_dockerfiles"]
     arches = ["amd64", "386", "arm64", "arm", "ppc64le"]
     branches = ["p9", "p10", "sisyphus"]
-    images = os.listdir(IMAGES_DIR)
+    organizations = list(ORG_DIR.iterdir())
+    images = [f"{o.name}/{i.name}" for o in organizations for i in o.iterdir()]
+    organizations = [o.name for o in organizations]
 
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    images_group = parser.add_mutually_exclusive_group(required=True)
+    images_group.add_argument(
+        "-i",
+        "--images",
+        nargs="+",
+        default=images,
+        choices=images,
+        help="list of branches",
+    )
+    images_group.add_argument(
+        "-o",
+        "--organizations",
+        nargs="+",
+        default=organizations,
+        choices=organizations,
+        help="build all images from these organizations",
     )
     parser.add_argument(
         "-r",
@@ -162,9 +204,7 @@ def parse_args():
         default="registry.altlinux.org",
     )
     parser.add_argument(
-        "-o",
-        "--organization",
-        default="alt",
+        "--overwrite-organization",
     )
     parser.add_argument(
         "-l",
@@ -175,14 +215,6 @@ def parse_args():
         "--dry-run",
         action="store_true",
         help="print instead of running docker commands",
-    )
-    parser.add_argument(
-        "-i",
-        "--images",
-        nargs="+",
-        default=images,
-        choices=images,
-        help="list of branches",
     )
     parser.add_argument(
         "--skip-images",
@@ -256,27 +288,27 @@ def get_images_info():
 def main():
     args = parse_args()
     images_info = get_images_info()
-    for branch in args.branches:
-        db = DockerBuilder(
-            args.registry, args.organization, args.latest, args.dry_run, images_info
-        )
-        if "remove_dockerfiles" in args.stages:
-            db.remove_dockerfiles()
-        if "render_dockerfiles" in args.stages:
-            db.render_dockerfiles(branch)
-        if "build" in args.stages:
-            for image in db.get_build_order():
-                if image not in args.images:
-                    continue
+    for organization in args.organizations:
+        for branch in args.branches:
+            db = DockerBuilder(
+                args.registry,
+                organization,
+                args.overwrite_organization,
+                args.latest,
+                args.dry_run,
+                images_info,
+            )
+            if "remove_dockerfiles" in args.stages:
+                db.remove_dockerfiles()
+            if "render_dockerfiles" in args.stages:
+                db.render_dockerfiles(branch)
+            if "build" in args.stages:
+                for image in db.get_build_order():
+                    if f"{organization}/{image}" not in args.images:
+                        continue
 
-                if "build" in args.stages:
-                    msg = "Building image {} for branch {} anf {} arches".format(
-                        image,
-                        branch,
-                        args.arches,
-                    )
-                    print(msg)
-                    db.build(image, args.arches, branch)
+                    if "build" in args.stages:
+                        db.build(image, args.arches, branch)
 
 
 if __name__ == "__main__":
