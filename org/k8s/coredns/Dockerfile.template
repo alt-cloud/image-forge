@@ -1,0 +1,11 @@
+FROM {{ registry }}{{ alt_image }}:{{ branch }}
+
+MAINTAINER alt-cloud
+
+RUN apt-get update && \
+    apt-get install -y coredns && \
+    rm -f /var/cache/apt/archives/*.rpm \
+          /var/cache/apt/*.bin \
+          /var/lib/apt/lists/*.*
+
+ENTRYPOINT ["/usr/bin/coredns"]
