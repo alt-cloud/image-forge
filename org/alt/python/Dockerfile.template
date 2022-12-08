@@ -2,14 +2,11 @@ FROM {{ registry }}{{ organization }}/base:{{ branch }}
 
 MAINTAINER alt-cloud
 
-RUN apt-get update && \
-    apt-get install -y python3-module-pip \
-                       python3-module-setuptools \
-                       python3-dev \
-                       gcc \
-                       ; \
-    rm -f /var/cache/apt/archives/*.rpm \
-          /var/cache/apt/*.bin \
-          /var/lib/apt/lists/*.*
+{{ install_pakages(
+    "python3-module-pip",
+    "python3-module-setuptools",
+    "python3-dev",
+    "gcc",
+) }}
 
 CMD ["python3"]

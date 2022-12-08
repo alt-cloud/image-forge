@@ -2,10 +2,6 @@ FROM {{ registry }}{{ alt_image }}:{{ branch }}
 
 MAINTAINER alt-cloud
 
-RUN apt-get update && \
-    apt-get install -y kubernetes-master && \
-    rm -f /var/cache/apt/archives/*.rpm \
-          /var/cache/apt/*.bin \
-          /var/lib/apt/lists/*.*
+{{ install_pakages("kubernetes-master") }}
 
 ENTRYPOINT ["/usr/bin/kube-scheduler"]

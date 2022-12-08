@@ -5,6 +5,7 @@ import json
 import os
 import re
 import subprocess
+import textwrap
 from graphlib import TopologicalSorter
 from pathlib import Path
 
@@ -77,6 +78,19 @@ class DockerBuilder:
 
     @forall_images(consume_result=True)
     def render_dockerfiles(self, branch, **kwargs):
+        def install_pakages(*names):
+            command = f"""
+            RUN apt-get update && \\
+                apt-get install -y {' '.join(names)} && \\
+                rm -f /var/cache/apt/archives/*.rpm \\
+                      /var/cache/apt/*.bin \\
+                      /var/lib/apt/lists/*.*
+            """.lstrip(
+                "\n"
+            )
+            command = textwrap.dedent(command).rstrip("\n")
+            return command
+
         if kwargs["dockerfile_template"].exists():
             if self.registry:
                 registry = self.registry.rstrip("/") + "/"
@@ -87,6 +101,7 @@ class DockerBuilder:
             rendered = Template(kwargs["dockerfile_template"].read_text()).render(
                 alt_image=alt_image,
                 branch=branch,
+                install_pakages=install_pakages,
                 organization=self.organization,
                 registry=registry,
             )

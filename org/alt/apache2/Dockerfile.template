@@ -2,11 +2,7 @@ FROM {{ registry }}{{ alt_image }}:{{ branch }}
 
 MAINTAINER alt-cloud
 
-RUN apt-get update && \
-    apt-get install -y apache2; \
-    rm -f /var/cache/apt/archives/*.rpm \
-          /var/cache/apt/*.bin \
-          /var/lib/apt/lists/*.*
+{{ install_pakages("apache2") }}
 
 EXPOSE 80
 

@@ -2,11 +2,7 @@ FROM {{ registry }}{{ alt_image }}:{{ branch }}
 
 MAINTAINER alt-cloud
 
-RUN apt-get update && \
-    apt-get install -y kubernetes-node && \
-    rm -f /var/cache/apt/archives/*.rpm \
-          /var/cache/apt/*.bin \
-          /var/lib/apt/lists/*.*
+{{ install_pakages("kubernetes-node") }}
 
 RUN ln -s /usr/bin/kube-proxy /usr/local/bin/kube-proxy
 

@@ -2,11 +2,7 @@ FROM {{ registry }}{{ alt_image }}:{{ branch }}
 
 MAINTAINER alt-cloud
 
-RUN apt-get update && \
-    apt-get install -y nginx apache2-html tzdata; \
-    rm -f /var/cache/apt/archives/*.rpm \
-          /var/cache/apt/*.bin \
-          /var/lib/apt/lists/*.*
+{{ install_pakages("nginx", "apache2-html", "tzdata") }}
 
 RUN cd /etc/nginx/sites-enabled.d && ln -s ../sites-available.d/default.conf .
 

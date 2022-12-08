@@ -2,11 +2,7 @@ FROM {{ registry }}{{ organization }}/base:{{ branch }}
 
 MAINTAINER alt-cloud
 
-RUN apt-get update && \
-    apt-get install -y systemd; \
-    rm -f /var/cache/apt/archives/*.rpm \
-          /var/cache/apt/*.bin \
-          /var/lib/apt/lists/*.*
+{{ install_pakages("systemd") }}
 
 RUN ( \
         cd /lib/systemd/system/sysinit.target.wants/; \

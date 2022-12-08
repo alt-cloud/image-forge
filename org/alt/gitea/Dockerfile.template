@@ -2,17 +2,7 @@ FROM {{ registry }}{{ alt_image }}:{{ branch }}
 
 MAINTAINER alt-cloud
 
-RUN apt-get update && \
-    apt-get install -y gitea openssh-server; \
-    rm -f /var/cache/apt/archives/*.rpm \
-          /var/cache/apt/*.bin \
-          /var/lib/apt/lists/*.*
-
-RUN apt-get update && \
-    apt-get install -y gosu; \
-    rm -f /var/cache/apt/archives/*.rpm \
-          /var/cache/apt/*.bin \
-          /var/lib/apt/lists/*.*
+{{ install_pakages("gitea", "openssh-server", "gosu") }}
 
 ENV USER gitea
 ENV HOME /var/lib/gitea

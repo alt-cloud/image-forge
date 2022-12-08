@@ -1,12 +1,6 @@
-FROM alt:sisyphus as installer
+FROM {{ registry }}{{ alt_image }}:{{ branch }}
 
-RUN apt-get update && \
-    apt-get install -y apt-repo && \
-    sh -c 'yes | apt-repo test 310153' && \
-    apt-get remove -y apt-repo && \
-    rm -f /var/cache/apt/archives/*.rpm \
-          /var/cache/apt/*.bin \
-          /var/lib/apt/lists/*.*
+{{ install_pakages("kubernetes-pause") }}
 
 FROM scratch
 
