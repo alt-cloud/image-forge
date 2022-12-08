@@ -168,6 +168,7 @@ class DockerBuilder:
         cmd = [
             "buildctl",
             "build",
+            "--progress=plain",
             "--frontend=dockerfile.v0",
             "--local",
             "context=.",
