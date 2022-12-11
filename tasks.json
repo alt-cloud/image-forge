@@ -1,0 +1,6 @@
+{
+    "p10": {
+        "311246": ["k8s/coredns"],
+        "311482": ["k8s/cert-manager-cainjector", "k8s/cert-manager-controller", "k8s/cert-manager-webhook"]
+    }
+}
