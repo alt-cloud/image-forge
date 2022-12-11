@@ -15,6 +15,21 @@ from jinja2 import Template
 ORG_DIR = Path("org")
 
 
+class Tasks:
+    def __init__(self, tasks):
+        if tasks is None:
+            self._tasks = None
+        else:
+            self._tasks = json.loads(Path(tasks).read_text())
+
+    def get(self, branch, image):
+        if self._tasks is None:
+            return []
+        else:
+            if branch_tasks := self._tasks.get(branch):
+                return [n for n, i in branch_tasks.items() if image in i or len(i) == 0]
+
+
 class DockerBuilder:
     def make_from_re(self):
         registry = r"(?P<registry>[\w.:]+)"
@@ -31,6 +46,7 @@ class DockerBuilder:
         latest,
         dry_run,
         images_info,
+        tasks: Tasks,
     ):
         self.from_re = re.compile(self.make_from_re())
         self.org_dir = ORG_DIR
@@ -44,6 +60,7 @@ class DockerBuilder:
         self.latest = latest
         self.dry_run = dry_run
         self.images_info = images_info
+        self.tasks = tasks
 
     def full_image(self, image):
         return f"{self.organization}/{image}"
@@ -52,7 +69,9 @@ class DockerBuilder:
         def forall_images_decorator(f):
             def wrapped(self, *args, **kwargs):
                 for image in self.images_dir.iterdir():
+                    image_name = "/".join(image.parts[1:])
                     local_kwargs = {
+                        "image_name": image_name,
                         "image": image,
                         "dockerfile": image / "Dockerfile",
                         "dockerfile_template": image / "Dockerfile.template",
@@ -79,17 +98,25 @@ class DockerBuilder:
     @forall_images(consume_result=True)
     def render_dockerfiles(self, branch, **kwargs):
         def install_pakages(*names):
-            command = f"""
-            RUN apt-get update && \\
-                apt-get install -y {' '.join(names)} && \\
-                rm -f /var/cache/apt/archives/*.rpm \\
-                      /var/cache/apt/*.bin \\
-                      /var/lib/apt/lists/*.*
-            """.lstrip(
-                "\n"
-            )
-            command = textwrap.dedent(command).rstrip("\n")
-            return command
+            tasks = self.tasks.get(branch, kwargs["image_name"])
+            if tasks:
+                apt_repo = "\\\n    apt-get install apt-repo -y && \\"
+                linux32 = '$([ "$(rpm --eval %_host_cpu)" = i586 ] && echo linux32)'
+                for task in tasks:
+                    apt_repo += f"\n    {linux32} apt-repo add {task} && \\"
+                apt_repo += f"\n    apt-get update && \\"
+            else:
+                apt_repo = "\\"
+            update_command = f"""RUN apt-get update && {apt_repo}"""
+            install_command = f"""
+            apt-get install -y {' '.join(names)} && \\
+            rm -f /var/cache/apt/archives/*.rpm \\
+                  /var/cache/apt/*.bin \\
+                  /var/lib/apt/lists/*.*
+            """
+            install_command = textwrap.dedent(install_command).rstrip("\n")
+            install_command = textwrap.indent(install_command, " " * 4)
+            return update_command + install_command
 
         if kwargs["dockerfile_template"].exists():
             if self.registry:
@@ -228,6 +255,11 @@ def parse_args():
         default="p10",
     )
     parser.add_argument(
+        "--tasks",
+        type=Tasks,
+        default=Tasks(None),
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="print instead of running docker commands",
@@ -313,6 +345,7 @@ def main():
                 args.latest,
                 args.dry_run,
                 images_info,
+                args.tasks,
             )
             if "remove_dockerfiles" in args.stages:
                 db.remove_dockerfiles()
