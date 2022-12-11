@@ -1,4 +1,4 @@
-FROM {{ registry }}{{ alt_image }}:{{ branch }}
+FROM {{ registry }}{{ alt_image }}:{{ branch }} as installer
 
 {{ install_pakages("kubernetes-pause") }}
 
