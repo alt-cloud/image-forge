@@ -104,7 +104,7 @@ class DockerBuilder:
                 linux32 = '$([ "$(rpm --eval %_host_cpu)" = i586 ] && echo linux32)'
                 for task in tasks:
                     apt_repo += f"\n    {linux32} apt-repo add {task} && \\"
-                apt_repo += f"\n    apt-get update && \\"
+                apt_repo += "\n    apt-get update && \\"
             else:
                 apt_repo = "\\"
             update_command = f"""RUN apt-get update && {apt_repo}"""
