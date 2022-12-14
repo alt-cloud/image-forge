@@ -99,9 +99,9 @@ class DockerBuilder:
     def render_dockerfiles(self, branch, **kwargs):
         def install_pakages(*names):
             tasks = self.tasks.get(branch, kwargs["image_name"])
+            linux32 = '$([ "$(rpm --eval %_host_cpu)" = i586 ] && echo linux32)'
             if tasks:
                 apt_repo = "\\\n    apt-get install apt-repo -y && \\"
-                linux32 = '$([ "$(rpm --eval %_host_cpu)" = i586 ] && echo linux32)'
                 for task in tasks:
                     apt_repo += f"\n    {linux32} apt-repo add {task} && \\"
                 apt_repo += "\n    apt-get update && \\"
@@ -109,7 +109,7 @@ class DockerBuilder:
                 apt_repo = "\\"
             update_command = f"""RUN apt-get update && {apt_repo}"""
             install_command = f"""
-            apt-get install -y {' '.join(names)} && \\
+            {linux32} apt-get install -y {' '.join(names)} && \\
             rm -f /var/cache/apt/archives/*.rpm \\
                   /var/cache/apt/*.bin \\
                   /var/lib/apt/lists/*.*
