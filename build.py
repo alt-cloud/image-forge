@@ -163,6 +163,8 @@ class DockerBuilder:
         return f"{registry}{self.overwrite_organization}/{image}{tag}"
 
     def run(self, cmd, *args, **kwargs):
+        if "check" not in kwargs:
+            kwargs["check"] = True
         if self.dry_run:
             pre_cmd = ["echo"]
         else:
