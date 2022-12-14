@@ -174,8 +174,8 @@ class DockerBuilder:
     def build(self, image, arches, tag):
         new_env = os.environ | {"DOCKER_BUILDKIT": "1"}
 
-        info = self.images_info.get(self.full_image(image), {})
-        if tag in info.get("skip-branches", []):
+        full_image = self.full_image(image)
+        if self.images_info.skip_branch(full_image, tag):
             return
 
         msg = "Building image {} for branch {} and {} arches".format(
@@ -185,7 +185,7 @@ class DockerBuilder:
         )
         print(msg)
 
-        build_arches = set(arches) - set(info.get("skip-arches", []))
+        build_arches = set(arches) - set(self.images_info.skip_arches(full_image))
         platforms = ",".join([f"linux/{a}" for a in build_arches])
         full_name = self.render_full_tag(image, tag)
         if tag == self.latest:
@@ -215,8 +215,8 @@ class DockerBuilder:
         )
 
     def podman_build(self, image, arches, tag):
-        info = self.images_info.get(self.full_image(image), {})
-        if tag in info.get("skip-branches", []):
+        full_image = self.full_image(image)
+        if self.images_info.skip_branch(full_image, tag):
             return
 
         msg = "Building image {} for branch {} and {} arches".format(
@@ -226,7 +226,7 @@ class DockerBuilder:
         )
         print(msg)
 
-        build_arches = set(arches) - set(info.get("skip-arches", []))
+        build_arches = set(arches) - set(self.images_info.skip_arches(full_image))
         platforms = ",".join([f"linux/{a}" for a in build_arches])
         full_name = self.render_full_tag(image, tag)
         if tag == self.latest:
@@ -248,8 +248,8 @@ class DockerBuilder:
             self.run(tag_cmd)
 
     def podman_push(self, image, tag, sign=None):
-        info = self.images_info.get(self.full_image(image), {})
-        if tag in info.get("skip-branches", []):
+        full_image = self.full_image(image)
+        if self.images_info.skip_branch(full_image, tag):
             return
 
         full_name = self.render_full_tag(image, tag)
@@ -272,6 +272,32 @@ class DockerBuilder:
                 cmd.append(f"--sign-by={sign}")
 
             self.run(cmd)
+
+
+class ImagesInfo:
+    def __init__(self):
+        info = {}
+        images_info = Path("images-info.json")
+        if images_info.exists():
+            info = json.loads(images_info.read_text())
+
+        self._info = info
+
+    def skip_arch(self, image, arch):
+        info = self._info.get(image, {})
+        return arch in info.get("skip-arches", [])
+
+    def skip_arches(self, image):
+        info = self._info.get(image, {})
+        return info.get("skip-arches", [])
+
+    def skip_branch(self, image, branch):
+        info = self._info.get(image, {})
+        return branch in info.get("skip-branches", [])
+
+    def skip_branches(self, image):
+        info = self._info.get(image, {})
+        return info.get("skip-branches", [])
 
 
 def parse_args():
@@ -393,18 +419,9 @@ def parse_args():
     return args
 
 
-def get_images_info():
-    result = {}
-    images_info = Path("images-info.json")
-    if images_info.exists():
-        result = json.loads(images_info.read_text())
-
-    return result
-
-
 def main():
     args = parse_args()
-    images_info = get_images_info()
+    images_info = ImagesInfo()
     for organization in args.organizations:
         for branch in args.branches:
             db = DockerBuilder(
