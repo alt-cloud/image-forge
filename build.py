@@ -214,6 +214,65 @@ class DockerBuilder:
             env=new_env,
         )
 
+    def podman_build(self, image, arches, tag):
+        info = self.images_info.get(self.full_image(image), {})
+        if tag in info.get("skip-branches", []):
+            return
+
+        msg = "Building image {} for branch {} and {} arches".format(
+            self.full_image(image),
+            tag,
+            arches,
+        )
+        print(msg)
+
+        build_arches = set(arches) - set(info.get("skip-arches", []))
+        platforms = ",".join([f"linux/{a}" for a in build_arches])
+        full_name = self.render_full_tag(image, tag)
+        if tag == self.latest:
+            lates_name = self.render_full_tag(image, "latest")
+        else:
+            lates_name = None
+
+        build_cmd = [
+            "podman",
+            "build",
+            f"--manifest={full_name}",
+            f"--platform={platforms}",
+            ".",
+        ]
+        self.run(build_cmd, cwd=self.images_dir / image)
+
+        if lates_name is not None:
+            tag_cmd = ["podman", "tag", full_name, lates_name]
+            self.run(tag_cmd)
+
+    def podman_push(self, image, tag, sign=None):
+        info = self.images_info.get(self.full_image(image), {})
+        if tag in info.get("skip-branches", []):
+            return
+
+        full_name = self.render_full_tag(image, tag)
+        print(f"Push manifest {full_name}")
+        manifests = [full_name]
+        if tag == self.latest:
+            latest_name = self.render_full_tag(image, "latest")
+            manifests.append(latest_name)
+
+        for manifest in manifests:
+            cmd = [
+                "podman",
+                "manifest",
+                "push",
+                manifest,
+                f"docker://{manifest}",
+            ]
+
+            if sign is not None:
+                cmd.append(f"--sign-by={sign}")
+
+            self.run(cmd)
+
 
 def parse_args():
     stages = ["build", "remove_dockerfiles", "render_dockerfiles"]
@@ -265,6 +324,14 @@ def parse_args():
         "--dry-run",
         action="store_true",
         help="print instead of running docker commands",
+    )
+    parser.add_argument(
+        "--sign",
+    )
+    parser.add_argument(
+        "--podman",
+        action="store_true",
+        help="use podman to build images",
     )
     parser.add_argument(
         "--skip-images",
@@ -359,7 +426,11 @@ def main():
                         continue
 
                     if "build" in args.stages:
-                        db.build(image, args.arches, branch)
+                        if args.podman:
+                            db.podman_build(image, args.arches, branch)
+                            db.podman_push(image, branch, args.sign)
+                        else:
+                            db.build(image, args.arches, branch)
 
 
 if __name__ == "__main__":
