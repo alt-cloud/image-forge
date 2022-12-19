@@ -234,6 +234,13 @@ class DockerBuilder:
         else:
             lates_name = None
 
+        rm_manifest_cmd = [
+            "podman",
+            "manifest",
+            "rm",
+            full_name,
+        ]
+        self.run(rm_manifest_cmd, check=False)
         build_cmd = [
             "podman",
             "build",
