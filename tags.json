@@ -1,0 +1,42 @@
+{
+    "k8s/cert-manager-cainjector": {
+        "p10": ["v1.9.1"],
+        "sisyphus": ["v1.9.1"]
+    },
+    "k8s/cert-manager-controller": {
+        "p10": ["v1.9.1"],
+        "sisyphus": ["v1.9.1"]
+    },
+    "k8s/cert-manager-webhook": {
+        "p10": ["v1.9.1"],
+        "sisyphus": ["v1.9.1"]
+    },
+    "k8s/coredns": {
+        "p10": ["v1.8.4"],
+        "sisyphus": ["v1.8.6"]
+    },
+    "k8s/etcd": {
+        "p10": ["3.5.5-0"],
+        "sisyphus": ["3.5.5-0"]
+    },
+    "k8s/kube-apiserver": {
+        "p10": ["v1.22.8"],
+        "sisyphus": ["v1.24.8"]
+    },
+    "k8s/kube-controller-manager": {
+        "p10": ["v1.22.8"],
+        "sisyphus": ["v1.24.8"]
+    },
+    "k8s/kube-proxy": {
+        "p10": ["v1.22.8"],
+        "sisyphus": ["v1.24.8"]
+    },
+    "k8s/kube-scheduler": {
+        "p10": ["v1.22.8"],
+        "sisyphus": ["v1.24.8"]
+    },
+    "k8s/pause": {
+        "p10": ["3.5"],
+        "sisyphus": ["3.7"]
+    }
+}
