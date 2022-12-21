@@ -30,6 +30,25 @@ class Tasks:
                 return [n for n, i in branch_tasks.items() if image in i or len(i) == 0]
 
 
+class Tags:
+    def __init__(self, tags_file, latest):
+        if tags_file is None:
+            self._tags = None
+        else:
+            tags_file = Path(tags_file)
+            self._tags = json.loads(tags_file.read_text())
+        self._latest = latest
+
+    def tags(self, branch, image):
+        if self._tags is None:
+            tags = [branch]
+        else:
+            tags = self._tags[image][branch]
+        if branch == self._latest:
+            tags.append("latest")
+        return tags
+
+
 class DockerBuilder:
     def make_from_re(self):
         registry = r"(?P<registry>[\w.:]+)"
@@ -47,6 +66,7 @@ class DockerBuilder:
         dry_run,
         images_info,
         tasks: Tasks,
+        tags: Tags,
     ):
         self.from_re = re.compile(self.make_from_re())
         self.org_dir = ORG_DIR
@@ -61,6 +81,7 @@ class DockerBuilder:
         self.dry_run = dry_run
         self.images_info = images_info
         self.tasks = tasks
+        self.tags = tags
 
     def full_image(self, image):
         return f"{self.organization}/{image}"
@@ -214,25 +235,22 @@ class DockerBuilder:
             env=new_env,
         )
 
-    def podman_build(self, image, arches, tag):
+    def podman_build(self, image, arches, branch):
         full_image = self.full_image(image)
-        if self.images_info.skip_branch(full_image, tag):
+        if self.images_info.skip_branch(full_image, branch):
             return
 
         msg = "Building image {} for branch {} and {} arches".format(
             self.full_image(image),
-            tag,
+            branch,
             arches,
         )
         print(msg)
 
         build_arches = set(arches) - set(self.images_info.skip_arches(full_image))
         platforms = ",".join([f"linux/{a}" for a in build_arches])
-        full_name = self.render_full_tag(image, tag)
-        if tag == self.latest:
-            lates_name = self.render_full_tag(image, "latest")
-        else:
-            lates_name = None
+        tags = self.tags.tags(branch, full_image)
+        full_name = self.render_full_tag(image, tags[0])
 
         rm_manifest_cmd = [
             "podman",
@@ -250,23 +268,21 @@ class DockerBuilder:
         ]
         self.run(build_cmd, cwd=self.images_dir / image)
 
-        if lates_name is not None:
-            tag_cmd = ["podman", "tag", full_name, lates_name]
+        for tag in tags[1:]:
+            other_full_name = self.render_full_tag(image, tag)
+            tag_cmd = ["podman", "tag", full_name, other_full_name]
             self.run(tag_cmd)
 
-    def podman_push(self, image, tag, sign=None):
+    def podman_push(self, image, branch, sign=None):
         full_image = self.full_image(image)
-        if self.images_info.skip_branch(full_image, tag):
+        if self.images_info.skip_branch(full_image, branch):
             return
 
-        full_name = self.render_full_tag(image, tag)
-        print(f"Push manifest {full_name}")
-        manifests = [full_name]
-        if tag == self.latest:
-            latest_name = self.render_full_tag(image, "latest")
-            manifests.append(latest_name)
+        tags = self.tags.tags(branch, full_image)
+        manifests = [self.render_full_tag(image, t) for t in tags]
 
         for manifest in manifests:
+            print(f"Push manifest {manifest}")
             cmd = [
                 "podman",
                 "manifest",
@@ -354,6 +370,10 @@ def parse_args():
         default=Tasks(None),
     )
     parser.add_argument(
+        "--tags",
+        help="use tags from TAGS file",
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="print instead of running docker commands",
@@ -429,6 +449,7 @@ def parse_args():
 def main():
     args = parse_args()
     images_info = ImagesInfo()
+    tags = Tags(args.tags, args.latest)
     for organization in args.organizations:
         for branch in args.branches:
             db = DockerBuilder(
@@ -439,6 +460,7 @@ def main():
                 args.dry_run,
                 images_info,
                 args.tasks,
+                tags,
             )
             if "remove_dockerfiles" in args.stages:
                 db.remove_dockerfiles()
