@@ -192,49 +192,6 @@ class DockerBuilder:
             pre_cmd = []
         subprocess.run(pre_cmd + cmd, *args, **kwargs)
 
-    def build(self, image, arches, tag):
-        new_env = os.environ | {"DOCKER_BUILDKIT": "1"}
-
-        full_image = self.full_image(image)
-        if self.images_info.skip_branch(full_image, tag):
-            return
-
-        msg = "Building image {} for branch {} and {} arches".format(
-            self.full_image(image),
-            tag,
-            arches,
-        )
-        print(msg)
-
-        build_arches = set(arches) - set(self.images_info.skip_arches(full_image))
-        platforms = ",".join([f"linux/{a}" for a in build_arches])
-        full_name = self.render_full_tag(image, tag)
-        if tag == self.latest:
-            lates_name = self.render_full_tag(image, "latest")
-            names = f"{full_name},{lates_name}"
-        else:
-            names = full_name
-
-        cmd = [
-            "buildctl",
-            "build",
-            "--progress=plain",
-            "--frontend=dockerfile.v0",
-            "--local",
-            "context=.",
-            "--local",
-            "dockerfile=.",
-            "--opt",
-            f"platform={platforms}",
-            "--output",
-            f'type=image,"name={names}",push=true',
-        ]
-        self.run(
-            cmd,
-            cwd=self.images_dir / image,
-            env=new_env,
-        )
-
     def podman_build(self, image, arches, branch):
         full_image = self.full_image(image)
         if self.images_info.skip_branch(full_image, branch):
@@ -324,7 +281,7 @@ class ImagesInfo:
 
 
 def parse_args():
-    stages = ["build", "remove_dockerfiles", "render_dockerfiles"]
+    stages = ["build", "remove_dockerfiles", "render_dockerfiles", "push"]
     arches = ["amd64", "386", "arm64", "arm", "ppc64le"]
     branches = ["p9", "p10", "sisyphus"]
     organizations = list(ORG_DIR.iterdir())
@@ -380,11 +337,6 @@ def parse_args():
     )
     parser.add_argument(
         "--sign",
-    )
-    parser.add_argument(
-        "--podman",
-        action="store_true",
-        help="use podman to build images",
     )
     parser.add_argument(
         "--skip-images",
@@ -472,11 +424,10 @@ def main():
                         continue
 
                     if "build" in args.stages:
-                        if args.podman:
-                            db.podman_build(image, args.arches, branch)
-                            db.podman_push(image, branch, args.sign)
-                        else:
-                            db.build(image, args.arches, branch)
+                        db.podman_build(image, args.arches, branch)
+
+                    if "push" in args.stages:
+                        db.podman_push(image, branch, args.sign)
 
 
 if __name__ == "__main__":
