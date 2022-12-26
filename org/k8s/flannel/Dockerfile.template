@@ -1,0 +1,22 @@
+FROM {{ registry }}{{ alt_image }}:{{ branch }}
+
+MAINTAINER alt-cloud
+
+{{ install_pakages(
+    "iproute2",
+    "net-tools",
+    "ca-certificates",
+    "iptables",
+    "iptables-nft",
+    "strongswan",
+    "wireguard-tools",
+    "flannel",
+    "wget",
+) }}
+
+RUN update-ca-trust
+
+RUN mkdir -p /opt/bin/ && cp /usr/sbin/flanneld /opt/bin/flanneld
+RUN cp /usr/libexec/flannel/mk-docker-opts.sh /opt/bin/
+
+ENTRYPOINT ["/opt/bin/flanneld"]

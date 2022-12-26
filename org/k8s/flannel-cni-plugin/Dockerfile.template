@@ -1,0 +1,7 @@
+FROM {{ registry }}{{ alt_image }}:{{ branch }}
+
+MAINTAINER alt-cloud
+
+{{ install_pakages("cni-plugin-flannel") }}
+
+RUN cp /usr/libexec/cni/flannel /flannel
