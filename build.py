@@ -418,16 +418,15 @@ def main():
                 db.remove_dockerfiles()
             if "render_dockerfiles" in args.stages:
                 db.render_dockerfiles(branch)
-            if "build" in args.stages:
-                for image in db.get_build_order():
-                    if f"{organization}/{image}" not in args.images:
-                        continue
+            for image in db.get_build_order():
+                if f"{organization}/{image}" not in args.images:
+                    continue
 
-                    if "build" in args.stages:
-                        db.podman_build(image, args.arches, branch)
+                if "build" in args.stages:
+                    db.podman_build(image, args.arches, branch)
 
-                    if "push" in args.stages:
-                        db.podman_push(image, branch, args.sign)
+                if "push" in args.stages:
+                    db.podman_push(image, branch, args.sign)
 
 
 if __name__ == "__main__":
