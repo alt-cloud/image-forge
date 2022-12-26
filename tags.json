@@ -19,6 +19,14 @@
         "p10": ["3.5.0-0"],
         "sisyphus": ["3.5.5-0"]
     },
+    "k8s/flannel": {
+        "p10": ["v0.19.2"],
+        "sisyphus": ["v0.19.2"]
+    },
+    "k8s/flannel-cni-plugin": {
+        "p10": ["v1.2.0"],
+        "sisyphus": ["v1.2.0"]
+    },
     "k8s/kube-apiserver": {
         "p10": ["v1.22.5"],
         "sisyphus": ["v1.24.8"]
