@@ -16,23 +16,23 @@
         "sisyphus": ["v1.8.6"]
     },
     "k8s/etcd": {
-        "p10": ["3.5.5-0"],
+        "p10": ["3.5.0-0"],
         "sisyphus": ["3.5.5-0"]
     },
     "k8s/kube-apiserver": {
-        "p10": ["v1.22.8"],
+        "p10": ["v1.22.5"],
         "sisyphus": ["v1.24.8"]
     },
     "k8s/kube-controller-manager": {
-        "p10": ["v1.22.8"],
+        "p10": ["v1.22.5"],
         "sisyphus": ["v1.24.8"]
     },
     "k8s/kube-proxy": {
-        "p10": ["v1.22.8"],
+        "p10": ["v1.22.5"],
         "sisyphus": ["v1.24.8"]
     },
     "k8s/kube-scheduler": {
-        "p10": ["v1.22.8"],
+        "p10": ["v1.22.5"],
         "sisyphus": ["v1.24.8"]
     },
     "k8s/pause": {
