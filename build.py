@@ -127,7 +127,7 @@ class DockerBuilder:
             alt_image=alt_image,
             branch=branch,
             install_pakages=install_pakages,
-            organization=self.organization,
+            organization=self.overwrite_organization,
             registry=registry,
         )
 
