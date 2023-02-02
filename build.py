@@ -116,6 +116,23 @@ class DockerBuilder:
         if kwargs["dockerfile"].exists():
             kwargs["dockerfile"].unlink()
 
+    def render_template(self, template: str, branch: str, install_pakages=None) -> str:
+        if self.registry:
+            registry = self.registry.rstrip("/") + "/"
+            alt_image = "alt/alt"
+        else:
+            registry = ""
+            alt_image = "alt"
+        rendered = Template(template).render(
+            alt_image=alt_image,
+            branch=branch,
+            install_pakages=install_pakages,
+            organization=self.organization,
+            registry=registry,
+        )
+
+        return rendered
+
     @forall_images(consume_result=True)
     def render_dockerfiles(self, branch, **kwargs):
         def install_pakages(*names):
@@ -139,19 +156,10 @@ class DockerBuilder:
             install_command = textwrap.indent(install_command, " " * 4)
             return update_command + install_command
 
-        if kwargs["dockerfile_template"].exists():
-            if self.registry:
-                registry = self.registry.rstrip("/") + "/"
-                alt_image = "alt/alt"
-            else:
-                registry = ""
-                alt_image = "alt"
-            rendered = Template(kwargs["dockerfile_template"].read_text()).render(
-                alt_image=alt_image,
-                branch=branch,
-                install_pakages=install_pakages,
-                organization=self.organization,
-                registry=registry,
+        dockerfile_template = kwargs["dockerfile_template"]
+        if dockerfile_template.exists():
+            rendered = self.render_template(
+                dockerfile_template.read_text(), branch, install_pakages
             )
             kwargs["dockerfile"].write_text(rendered + "\n")
 
