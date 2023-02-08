@@ -2,4 +2,7 @@ FROM {{ registry }}{{ organization }}/python:{{ branch }}
 
 MAINTAINER alt-cloud
 
+WORKDIR /usr/src/distroless
+RUN mkdir file-lists
+RUN useradd -m nonroot
 COPY distroless-builder.py .
