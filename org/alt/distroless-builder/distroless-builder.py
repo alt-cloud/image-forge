@@ -15,7 +15,7 @@ class DL:
     def __init__(self, dl_file):
         self.dl_file = Path(dl_file)
 
-    def add(self, sources, is_glob=True, file_list=False, package=False):
+    def add(self, files, file_lists, packages, is_glob=True):
         def ensuere_one_endl(s):
             return s.rstrip("\n") + "\n"
 
@@ -26,22 +26,20 @@ class DL:
             else:
                 dl_file.write(ensuere_one_endl(source))
 
-
         with open(self.dl_file, "a") as dl_file:
-            for source in sources:
-                if file_list:
-                    with open(source) as source_list:
-                        for line in source_list:
-                            write_globs(is_glob, line, dl_file)
-                elif package:
-                    proc = subprocess.run(
-                        ["rpm", "-ql", source], stdout=subprocess.PIPE
-                    )
-                    proc.check_returncode()
-                    for line in proc.stdout.decode().splitlines():
-                        dl_file.write(ensuere_one_endl(line))
-                else:
-                    write_globs(is_glob, source, dl_file)
+            for file in files:
+                write_globs(is_glob, file, dl_file)
+            for file_list in file_lists:
+                with open(file_list) as fl:
+                    for line in fl:
+                        write_globs(is_glob, line, dl_file)
+            for package in packages:
+                proc = subprocess.run(
+                    ["rpm", "-ql", package], stdout=subprocess.PIPE
+                )
+                proc.check_returncode()
+                for line in proc.stdout.decode().splitlines():
+                    dl_file.write(ensuere_one_endl(line))
 
     def tar(self, outfile, regexes):
         def filter(tarinfo):
@@ -69,11 +67,6 @@ def parse_args():
     subparsers = parser.add_subparsers(dest="subparser_name")
     parser_add = subparsers.add_parser("add", help="add files to the dl-file")
     parser_add.add_argument(
-        "sources",
-        nargs="+",
-        help="adding source to the dl-file",
-    )
-    parser_add.add_argument(
         "--noglob",
         action="store_false",
         default=True,
@@ -85,18 +78,26 @@ def parse_args():
         action="store_true",
         help="clean before add",
     )
-    add_source_type = parser_add.add_mutually_exclusive_group()
-    add_source_type.add_argument(
+    parser_add.add_argument(
         "-f",
-        "--file-list",
-        action="store_true",
-        help="treat source as file with list of needed to add files",
+        "--files",
+        nargs="+",
+        default=[],
+        help="adding files to the dl-file",
     )
-    add_source_type.add_argument(
+    parser_add.add_argument(
+        "-l",
+        "--file-lists",
+        nargs="+",
+        default=[],
+        help="adding file from file lists to the dl-file",
+    )
+    parser_add.add_argument(
         "-p",
-        "--package",
-        action="store_true",
-        help="treat source as package name and add all its files",
+        "--packages",
+        nargs="+",
+        default=[],
+        help="adding file from packages to the dl-file",
     )
     parser_tar = subparsers.add_parser(
         "tar", help="create tar archive from the dl-file"
@@ -126,7 +127,7 @@ def main():
     if args.subparser_name == "add":
         if args.clean:
             dl.clean()
-        dl.add(args.sources, args.glob, args.file_list, args.package)
+        dl.add(args.files, args.file_lists, args.packages, args.glob)
     elif args.subparser_name == "tar":
         dl.tar(args.outfile, args.regexes)
     elif args.subparser_name == "clean":
