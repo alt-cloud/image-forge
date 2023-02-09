@@ -1,7 +1,9 @@
-FROM {{ registry }}{{ organization }}/python:{{ branch }}
+FROM {{ registry }}{{ alt_image }}:{{ branch }}
 
 MAINTAINER alt-cloud
 
+RUN echo %_excludedocs 1 >> /etc/rpm/macros
+{{ install_pakages("python3") }}
 WORKDIR /usr/src/distroless
 RUN mkdir file-lists
 RUN useradd -m nonroot
