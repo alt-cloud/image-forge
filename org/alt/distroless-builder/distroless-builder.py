@@ -35,11 +35,13 @@ class DL:
                         write_globs(is_glob, line, dl_file)
             for package in packages:
                 proc = subprocess.run(
-                    ["rpm", "-ql", package], stdout=subprocess.PIPE
+                    ["rpm", "-qls", package], stdout=subprocess.PIPE
                 )
                 proc.check_returncode()
                 for line in proc.stdout.decode().splitlines():
-                    dl_file.write(ensuere_one_endl(line))
+                    state, filename = line.split(maxsplit=1)
+                    if state == "normal":
+                        dl_file.write(ensuere_one_endl(filename))
 
     def tar(self, outfile, regexes):
         def filter(tarinfo):
