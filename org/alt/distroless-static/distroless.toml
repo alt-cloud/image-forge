@@ -1,0 +1,4 @@
+from = "scratch"
+file-lists = ["static.list"]
+user = "nonroot"
+workdir = "/home/nonroot"
