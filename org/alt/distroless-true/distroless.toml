@@ -1,0 +1,3 @@
+from = "{{ registry }}{{ organization }}/distroless-static:{{ branch }}"
+files = ["/bin/true"]
+cmd = ["/bin/true"]
