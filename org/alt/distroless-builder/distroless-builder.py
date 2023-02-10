@@ -34,9 +34,7 @@ class DL:
                     for line in fl:
                         write_globs(is_glob, line, dl_file)
             for package in packages:
-                proc = subprocess.run(
-                    ["rpm", "-qls", package], stdout=subprocess.PIPE
-                )
+                proc = subprocess.run(["rpm", "-qls", package], stdout=subprocess.PIPE)
                 proc.check_returncode()
                 for line in proc.stdout.decode().splitlines():
                     state, filename = line.split(maxsplit=1)
