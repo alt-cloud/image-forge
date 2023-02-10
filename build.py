@@ -71,6 +71,7 @@ class Distroless:
         self.file_lists = dd.get("file-lists", [])
         self.files = dd.get("files", [])
         self.packages = dd.get("packages", [])
+        self.exclude_regexes = dd.get("exclude-regexes", [])
 
         self.builder_install_packages = dd.get("builder-install-packages")
 
@@ -354,7 +355,19 @@ class DockerBuilder:
                 + packages_options
             )
 
-            run(["buildah", "run", builder, "./distroless-builder.py", "tar"])
+            exclude_regexes_options = []
+            if distroless.exclude_regexes:
+                exclude_regexes_options = ["-r"] + distroless.exclude_regexes
+            run(
+                [
+                    "buildah",
+                    "run",
+                    builder,
+                    "./distroless-builder.py",
+                    "tar",
+                ]
+                + exclude_regexes_options
+            )
 
             run(
                 [
