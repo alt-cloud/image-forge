@@ -83,6 +83,10 @@ class Distroless:
         for option in ["cmd", "entrypoint", "user"]:
             if value := dd.get(option):
                 self.config_options.append(f"--{option}={value}")
+        if value := dd.get("workdir"):
+            self.config_options.append(f"--workingdir={value}")
+        elif value := dd.get("workingdir"):
+            self.config_options.append(f"--workingdir={value}")
 
 
 class DockerBuilder:
