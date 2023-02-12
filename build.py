@@ -76,6 +76,8 @@ class Distroless:
         self.builder_install_packages = dd.get("builder-install-packages")
 
         self.timezone = dd.get("timezone")
+        if self.timezone:
+            self.files.append("/etc/localtime")
 
         self.copy = dd.get("copy", {})
 
