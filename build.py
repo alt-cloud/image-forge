@@ -66,6 +66,7 @@ class Distroless:
         dd = tomli.loads(distrolessfile.read_text())
 
         self.raw_from = dd["from"]
+        self.renderer = renderer
         self.from_ = renderer(dd["from"])
 
         self.file_lists = dd.get("file-lists", [])
@@ -91,11 +92,54 @@ class Distroless:
         self.config_options = []
         for option in ["cmd", "entrypoint", "user"]:
             if value := dd.get(option):
+                if isinstance(value, list):
+                    value = json.dumps(value)
                 self.config_options.append(f"--{option}={value}")
         if value := dd.get("workdir"):
             self.config_options.append(f"--workingdir={value}")
         elif value := dd.get("workingdir"):
             self.config_options.append(f"--workingdir={value}")
+
+    def render_arch_branch(self, arch, branch):
+        def if_arches(arches, value, default=""):
+            if arch in arches or not arches:
+                return value
+            else:
+                return default
+
+        def if_branches(branches, value, default=""):
+            if branch in branches or not branches:
+                return value
+            else:
+                return default
+
+        def if_arches_branches(arches, branches, value, default=""):
+            if arches and arch not in arches or branches and branch not in branches:
+                return default
+            else:
+                return value
+
+        renderer = functools.partial(
+            self.renderer,
+            if_arches=if_arches,
+            if_branches=if_branches,
+            if_arches_branches=if_arches_branches,
+        )
+
+        def filter_map(values):
+            if isinstance(values, dict):
+                return {k: r for k, v in values.items() if (r := renderer(v)) != ""}
+            else:
+                return [r for v in values if (r := renderer(v)) != ""]
+
+        self.builder_install_packages = filter_map(self.builder_install_packages)
+        self.config_options = filter_map(self.config_options)
+        self.copy = filter_map(self.copy)
+        self.file_lists = filter_map(self.file_lists)
+        self.files = filter_map(self.files)
+        self.library_files = filter_map(self.library_files)
+        self.library_packages = filter_map(self.library_packages)
+        self.packages = filter_map(self.packages)
 
 
 class DockerBuilder:
@@ -171,7 +215,11 @@ class DockerBuilder:
             kwargs["dockerfile"].unlink()
 
     def render_template(
-        self, template: str, organization: str, install_pakages=None
+        self,
+        template: str,
+        organization: str,
+        install_pakages=None,
+        **kwargs,
     ) -> str:
         if self.registry:
             registry = self.registry.rstrip("/") + "/"
@@ -185,6 +233,7 @@ class DockerBuilder:
             install_pakages=install_pakages,
             organization=organization,
             registry=registry,
+            **kwargs,
         )
 
         return rendered
@@ -292,6 +341,7 @@ class DockerBuilder:
                 Image("alt/distroless-builder"), self.branch
             )
             distroless = self.distrolesses[image.canonical_name]
+            distroless.render_arch_branch(arch, self.branch)
             builder = f"distroless-builder-{arch}"
             new = f"distroless-new-{arch}"
             run = functools.partial(self.run, cwd=image.path)
