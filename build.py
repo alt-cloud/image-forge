@@ -70,7 +70,9 @@ class Distroless:
 
         self.file_lists = dd.get("file-lists", [])
         self.files = dd.get("files", [])
+        self.library_files = dd.get("library-files", [])
         self.packages = dd.get("packages", [])
+        self.library_packages = dd.get("library-packages", [])
         self.exclude_regexes = dd.get("exclude-regexes", [])
 
         self.builder_install_packages = dd.get("builder-install-packages")
@@ -326,14 +328,14 @@ class DockerBuilder:
                     ]
                 )
 
-            files_options = []
-            file_lists_options = []
-            packages_options = []
+            options = []
             if distroless.files:
-                files_options = ["-f"] + distroless.files
+                options += ["-f"] + distroless.files
+            if distroless.library_files:
+                options += ["--library-files"] + distroless.library_files
             if file_lists := distroless.file_lists:
-                file_lists_options = ["-l"]
-                file_lists_options.extend([f"file-lists/{f}" for f in file_lists])
+                options += ["-l"]
+                options += [f"file-lists/{f}" for f in file_lists]
                 for file_list in file_lists:
                     run(
                         [
@@ -345,7 +347,9 @@ class DockerBuilder:
                         ]
                     )
             if distroless.packages:
-                packages_options = ["-p"] + distroless.packages
+                options += ["-p"] + distroless.packages
+            if distroless.library_packages:
+                options += ["--library-packages"] + distroless.library_packages
 
             run(
                 [
@@ -356,9 +360,7 @@ class DockerBuilder:
                     "add",
                     "--clean",
                 ]
-                + files_options
-                + file_lists_options
-                + packages_options
+                + options
             )
 
             exclude_regexes_options = []

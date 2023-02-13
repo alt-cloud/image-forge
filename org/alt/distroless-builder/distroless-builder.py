@@ -15,16 +15,20 @@ class DL:
     def __init__(self, dl_file):
         self.dl_file = Path(dl_file)
 
-    def add(self, files, file_lists, packages, is_glob=True):
-        def ensuere_one_endl(s):
-            return s.rstrip("\n") + "\n"
+    def add(self, files, file_lists, packages, is_glob=True, follow_symlink=True):
+        def write(dl_file, file):
+            file = file.rstrip("\n")
+            dl_file.write(file + "\n")
+            path = Path(file)
+            if follow_symlink and path.is_symlink():
+                dl_file.write(path.resolve().as_posix() + "\n")
 
         def write_globs(is_glob, source, dl_file):
             if is_glob:
                 for file in glob.glob(source.rstrip("\n")):
-                    dl_file.write(ensuere_one_endl(file))
+                    write(dl_file, file)
             else:
-                dl_file.write(ensuere_one_endl(source))
+                write(dl_file, file)
 
         with open(self.dl_file, "a") as dl_file:
             for file in files:
@@ -39,7 +43,7 @@ class DL:
                 for line in proc.stdout.decode().splitlines():
                     state, filename = line.split(maxsplit=1)
                     if state == "normal":
-                        dl_file.write(ensuere_one_endl(filename))
+                        write(dl_file, filename)
 
     def tar(self, outfile, regexes):
         def filter(tarinfo):
@@ -54,6 +58,31 @@ class DL:
 
     def clean(self):
         self.dl_file.unlink(missing_ok=True)
+
+
+def library_files(binaries):
+    files = set()
+    for binary in binaries:
+        ldd = subprocess.run(["ldd", binary], stdout=subprocess.PIPE)
+        ldd.check_returncode()
+        for line in ldd.stdout.decode().splitlines():
+            if match := re.match(r".*=>\s*(?P<file>\S+)", line):
+                files.add(match.groupdict()["file"])
+
+    return list(files)
+
+
+def library_packages(binaries):
+    packages = set()
+    for file in library_files(binaries):
+        rpm = subprocess.run(
+            ["rpm", "-qf", file, "--queryformat", r"%{NAME}\n"],
+            stdout=subprocess.PIPE,
+        )
+        rpm.check_returncode()
+        packages.add(rpm.stdout.decode().strip())
+
+    return list(packages)
 
 
 def parse_args():
@@ -71,7 +100,14 @@ def parse_args():
         action="store_false",
         default=True,
         dest="glob",
-        help="clean before add",
+        help="do not expand file names as globs",
+    )
+    parser_add.add_argument(
+        "--no-follow-symlink",
+        action="store_false",
+        default=True,
+        dest="follow_symlink",
+        help="do not add symlink destination with symlink",
     )
     parser_add.add_argument(
         "--clean",
@@ -91,6 +127,18 @@ def parse_args():
         nargs="+",
         default=[],
         help="adding file from file lists to the dl-file",
+    )
+    parser_add.add_argument(
+        "--library-files",
+        nargs="+",
+        default=[],
+        help="adding library files for binaries to the the dl-file",
+    )
+    parser_add.add_argument(
+        "--library-packages",
+        nargs="+",
+        default=[],
+        help="adding library packages for binaries to the the dl-file",
     )
     parser_add.add_argument(
         "-p",
@@ -127,7 +175,13 @@ def main():
     if args.subparser_name == "add":
         if args.clean:
             dl.clean()
-        dl.add(args.files, args.file_lists, args.packages, args.glob)
+        dl.add(
+            args.files + library_files(args.library_files),
+            args.file_lists,
+            args.packages + library_packages(args.library_packages),
+            args.glob,
+            args.follow_symlink,
+        )
     elif args.subparser_name == "tar":
         dl.tar(args.outfile, args.regexes)
     elif args.subparser_name == "clean":
