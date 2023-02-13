@@ -1,0 +1,19 @@
+from = "{{ registry }}{{ organization }}/distroless-static:{{ branch }}"
+builder-install-packages = [
+    "glibc-core",
+    '{{if_branches(["p10"], "glibc-nss")}}',
+    "glibc-timezones",
+    "libselinux",
+    "libssl",
+    "tzdata",
+    "zlib",
+]
+packages = [
+    "glibc-core",
+    '{{if_branches(["p10"], "glibc-nss")}}',
+    "glibc-pthread",
+    "glibc-timezones",
+    "tzdata",
+    "zlib",
+]
+timezone = "Europe/Moscow"
