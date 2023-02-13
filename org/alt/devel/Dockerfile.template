@@ -15,7 +15,7 @@ MAINTAINER alt-cloud
 {{ install_pakages("git-core", "perl-Git") }}
 
 # install network utils
-{{ install_pakages("iproute2") }}
+{{ install_pakages("iproute2", "iputils", "wget", "curl") }}
 
 # install file utils
 {{ install_pakages("lsof", "ripgrep") }}
