@@ -75,7 +75,12 @@ class Distroless:
         self.library_packages = dd.get("library-packages", [])
         self.exclude_regexes = dd.get("exclude-regexes", [])
 
-        self.builder_install_packages = dd.get("builder-install-packages")
+        self.builder_install_packages = dd.get("builder-install-packages", [])
+
+        for file in dd.get("full-files", []):
+            self.builder_install_packages.append(file)
+            self.files.append(file)
+            self.library_files.append(file)
 
         self.timezone = dd.get("timezone")
         if self.timezone:
