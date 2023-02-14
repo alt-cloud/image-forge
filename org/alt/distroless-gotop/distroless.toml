@@ -1,0 +1,3 @@
+from = "{{ registry }}{{ organization }}/distroless-base:{{ branch }}"
+full-files = ["/usr/bin/gotop"]
+entrypoint = ["/usr/bin/gotop"]
