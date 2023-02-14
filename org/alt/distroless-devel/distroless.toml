@@ -1,0 +1,39 @@
+from = "{{ registry }}{{ organization }}/distroless-base:{{ branch }}"
+builder-install-packages = [
+    "coreutils",
+    "findutils",
+    "glibc-utils",
+    "iproute2",
+    "vim-console",
+]
+full-files = [
+    "/bin/bash",
+    "/bin/grep",
+    "/bin/mount",
+    "/bin/sed",
+    "/bin/sh",
+    "/usr/bin/curl",
+    "/usr/bin/gdb",
+    "/usr/bin/lsof",
+    "/usr/bin/rg",
+    "/usr/bin/rsync",
+    "/usr/bin/strace",
+    "/usr/bin/wget",
+]
+files = [
+    "/etc/alternatives/links/*",
+    "/usr/bin/vim",
+]
+library-files = [
+    "/usr/bin/vim",
+    "/usr/bin/ss",
+]
+packages = [
+    "coreutils",
+    "findutils",
+    "glibc-utils",
+    "iproute2",
+    "vim-common",
+    "vim-console",
+]
+cmd = ["/bin/bash"]
