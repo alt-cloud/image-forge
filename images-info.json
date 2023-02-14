@@ -1,4 +1,22 @@
 {
+    "alt/distroless-base": {
+        "skip-branches": ["p9"]
+    },
+    "alt/distroless-builder": {
+        "skip-branches": ["p9"]
+    },
+    "alt/distroless-devel": {
+        "skip-branches": ["p9"]
+    },
+    "alt/distroless-gotop": {
+        "skip-branches": ["p9"]
+    },
+    "alt/distroless-static": {
+        "skip-branches": ["p9"]
+    },
+    "alt/distroless-true": {
+        "skip-branches": ["p9"]
+    },
     "alt/gitea": {
         "skip-branches": ["p9"]
     },
