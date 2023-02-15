@@ -241,7 +241,7 @@ class DockerBuilder:
     @forall_images(consume_result=True)
     def render_dockerfiles(self, **kwargs):
         def install_pakages(*names):
-            tasks = self.tasks.get(self.branch, kwargs["image"].canonical_name)
+            tasks = self.tasks.get(self.branch, kwargs["image"])
             linux32 = '$([ "$(rpm --eval %_host_cpu)" = i586 ] && echo linux32)'
             if tasks:
                 apt_repo = "\\\n    apt-get install apt-repo -y && \\"
