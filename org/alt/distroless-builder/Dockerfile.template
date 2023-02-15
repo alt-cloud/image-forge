@@ -4,7 +4,7 @@ MAINTAINER alt-cloud
 
 RUN echo %_excludedocs 1 >> /etc/rpm/macros
 RUN rpm -qalds | awk '/^normal/{print $2}' | xargs rm -rf
-{{ install_pakages("python3", "glibc-utils") }}
+{{ install_pakages("python3", "glibc-utils", "apt-repo") }}
 WORKDIR /usr/src/distroless
 RUN mkdir file-lists
 RUN useradd -m nonroot

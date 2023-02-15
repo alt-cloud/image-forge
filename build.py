@@ -365,6 +365,14 @@ class DockerBuilder:
             run(["buildah", "from", "--arch", arch, "--name", new, distroless.from_])
 
             if packages := distroless.builder_install_packages:
+                tasks = self.tasks.get(self.branch, image)
+                if tasks:
+                    if arch == "386":
+                        apt_repo_add = ["linux32", "apt-repo", "add"]
+                    else:
+                        apt_repo_add = ["apt-repo", "add"]
+                    for task in tasks:
+                        run(["buildah", "run", builder] + apt_repo_add + [task])
                 run(["buildah", "run", builder, "apt-get", "update"])
                 run(
                     ["buildah", "run", builder, "apt-get", "reinstall", "-y"] + packages
