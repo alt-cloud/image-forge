@@ -1,0 +1,29 @@
+# From image
+from = ""
+
+# List of packages to install to the builder container
+builder-install-packages = []
+# List of file lists to add from the builder container
+file-lists = []
+# List of files to add from the builder container
+files = []
+# List of binaries to add their dynamically linked libraries from the builder
+# container
+library-files = []
+# List of packages to add from the builder container
+packages = []
+# List of regexes that exclude files from adding from the builder container
+exclude-regexes = []
+# Add listed files to builder-install-packages, files and library-files lists
+full-files = []
+
+# Set timezone
+timezone = ""
+# Set workdir
+workdir = ""
+# Set user
+user = ""
+# Set cmd
+cmd = []
+# Set entrypoint
+entrypoint = []
