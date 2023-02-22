@@ -6,6 +6,9 @@ MAINTAINER alt-cloud
 
 RUN cd /etc/nginx/sites-enabled.d && ln -s ../sites-available.d/default.conf .
 
+RUN ln -sf /dev/stdout /var/log/nginx/access.log
+RUN ln -sf /dev/stderr /var/log/nginx/error.log
+
 RUN sed -Ei 's/^([[:space:]]*listen[[:space:]]+)localhost(:80)/\10.0.0.0\2/' \
             /etc/nginx/sites-available.d/default.conf
 
