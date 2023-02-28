@@ -479,7 +479,7 @@ class DockerBuilder:
         build_arches = set(arches) - set(
             self.images_info.skip_arches(image.canonical_name)
         )
-        tags = self.tags.tags(self.branch, image.canonical_name)
+        tags = self.tags.tags(self.branch, image)
         manifest = self.render_full_tag(image, tags[0])
 
         msg = "Building image {} for {} arches".format(
@@ -530,7 +530,7 @@ class DockerBuilder:
             self.images_info.skip_arches(image.canonical_name)
         )
         platforms = ",".join([f"linux/{a}" for a in build_arches])
-        tags = self.tags.tags(self.branch, image.canonical_name)
+        tags = self.tags.tags(self.branch, image)
         manifest = self.render_full_tag(image, tags[0])
 
         msg = "Building image {} for {} arches".format(
@@ -584,7 +584,7 @@ class DockerBuilder:
         if self.images_info.skip_branch(image.canonical_name, self.branch):
             return
 
-        tags = self.tags.tags(self.branch, image.canonical_name)
+        tags = self.tags.tags(self.branch, image)
         manifests = [self.render_full_tag(image, t) for t in tags]
 
         for manifest in manifests:
