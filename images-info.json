@@ -26,6 +26,9 @@
     "alt/prometheus": {
         "skip-branches": ["p9"]
     },
+    "alt/registry": {
+        "skip-branches": ["p9"]
+    },
     "k8s/cert-manager-cainjector": {
         "skip-branches": ["p9"]
     },

@@ -1,0 +1,15 @@
+FROM {{ registry }}{{ alt_image }}:{{ branch }}
+
+MAINTAINER alt-cloud
+
+{{ install_pakages("docker-registry") }}
+
+RUN ln -sf /usr/bin/docker-registry /bin/registry
+
+VOLUME ["/var/lib/registry"]
+EXPOSE 5000
+
+COPY entrypoint.sh /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
+
+CMD ["/etc/docker-registry/config.yml"]
