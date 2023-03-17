@@ -12,11 +12,11 @@
         "sisyphus": ["v1.9.1"]
     },
     "k8s/coredns": {
-        "p10": ["v1.8.4"],
+        "p10": ["v1.8.6"],
         "sisyphus": ["v1.8.6"]
     },
     "k8s/etcd": {
-        "p10": ["3.5.0-0"],
+        "p10": ["3.5.5-0"],
         "sisyphus": ["3.5.5-0"]
     },
     "k8s/flannel": {
@@ -28,23 +28,23 @@
         "sisyphus": ["v1.2.0"]
     },
     "k8s/kube-apiserver": {
-        "p10": ["v1.22.5"],
+        "p10": ["v1.24.8"],
         "sisyphus": ["v1.24.8"]
     },
     "k8s/kube-controller-manager": {
-        "p10": ["v1.22.5"],
+        "p10": ["v1.24.8"],
         "sisyphus": ["v1.24.8"]
     },
     "k8s/kube-proxy": {
-        "p10": ["v1.22.5"],
+        "p10": ["v1.24.8"],
         "sisyphus": ["v1.24.8"]
     },
     "k8s/kube-scheduler": {
-        "p10": ["v1.22.5"],
+        "p10": ["v1.24.8"],
         "sisyphus": ["v1.24.8"]
     },
     "k8s/pause": {
-        "p10": ["3.5"],
+        "p10": ["3.7"],
         "sisyphus": ["3.7"]
     }
 }
