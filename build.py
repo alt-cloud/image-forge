@@ -28,7 +28,7 @@ class Tasks:
         if tasks is None:
             self._tasks = None
         else:
-            self._tasks = json.loads(Path(tasks).read_text())
+            self._tasks = tomli.loads(Path(tasks).read_text())
 
     def get(self, branch, image: Image):
         if self._tasks is None:
@@ -48,7 +48,7 @@ class Tags:
             self._tags = None
         else:
             tags_file = Path(tags_file)
-            self._tags = json.loads(tags_file.read_text())
+            self._tags = tomli.loads(tags_file.read_text())
         self._latest = latest
 
     def tags(self, branch, image: Image):
@@ -606,9 +606,9 @@ class DockerBuilder:
 class ImagesInfo:
     def __init__(self):
         info = {}
-        images_info = Path("images-info.json")
+        images_info = Path("images-info.toml")
         if images_info.exists():
-            info = json.loads(images_info.read_text())
+            info = tomli.loads(images_info.read_text())
 
         self._info = info
 
