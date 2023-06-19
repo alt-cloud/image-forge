@@ -741,6 +741,7 @@ def parse_args():
     args = parser.parse_args()
 
     args.stages = set(args.stages) - set(args.skip_stages)
+    args.arches = set(args.arches) - set(args.skip_arches)
     args.branches = set(args.branches) - set(args.skip_branches)
     args.images = set(args.images) - set(args.skip_images)
 
