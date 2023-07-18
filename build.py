@@ -676,11 +676,13 @@ def parse_args():
         "-l",
         "--latest",
         default="p10",
+        help="tag images in this branch as latest",
     )
     parser.add_argument(
         "--tasks",
         type=Tasks,
         default=Tasks(None),
+        help="use tasks from TASKS file",
     )
     parser.add_argument(
         "--tags",
