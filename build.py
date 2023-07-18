@@ -22,6 +22,10 @@ class Image:
         self.path = ORG_DIR / canonical_name
         self.base_name = re.sub("^[^/]+/", "", canonical_name)
 
+    def __str__(self):
+        return (f'Image(canonical_name="{self.canonical_name}", '
+                f'path="{self.path}", base_name="{self.base_name}")')
+
 
 class Tasks:
     def __init__(self, tasks):
@@ -29,6 +33,9 @@ class Tasks:
             self._tasks = None
         else:
             self._tasks = tomli.loads(Path(tasks).read_text())
+
+    def __str__(self):
+        return f"{self._tasks}"
 
     def get(self, branch, image: Image):
         if self._tasks is None:
