@@ -55,7 +55,7 @@ class Tags:
         if self._tags is None:
             tags = [branch]
         else:
-            tags = self._tags[image.canonical_name][branch]
+            tags = self._tags[image.canonical_name][branch].copy()
         if branch == self._latest:
             tags.append("latest")
         return tags
