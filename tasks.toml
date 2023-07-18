@@ -1,4 +1,0 @@
-[p10]
-318204 = [ "k8s/flannel-cni-plugin" ]
-317882 = [ "k8s/flannel" ]
-316352 = [ "k8s/pause" ]
