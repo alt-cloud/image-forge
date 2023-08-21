@@ -4,7 +4,9 @@ builder-install-packages = [
     '{{if_branches(["p10"], "glibc-nss")}}',
     "glibc-timezones",
     "libselinux",
-    "libssl",
+    '{{if_branches(["p9", "p10"], "libssl1.1")}}',
+    '{{if_branches(["sisyphus"], "libssl1.1")}}',
+    '{{if_branches(["sisyphus"], "libssl3")}}',
     "tzdata",
     "zlib",
 ]
