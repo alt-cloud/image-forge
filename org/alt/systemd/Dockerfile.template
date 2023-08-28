@@ -2,7 +2,9 @@ FROM {{ registry }}{{ organization }}/base:{{ branch }}
 
 MAINTAINER alt-cloud
 
-{{ install_pakages("systemd") }}
+ENV container docker
+
+{{ install_pakages("systemd-sysvinit") }}
 
 RUN ( \
         cd /lib/systemd/system/sysinit.target.wants/; \
@@ -16,5 +18,7 @@ RUN ( \
     rm -f /lib/systemd/system/sockets.target.wants/*udev*; \
     rm -f /lib/systemd/system/sockets.target.wants/*initctl*; \
     rm -f /lib/systemd/system/basic.target.wants/*;
+
+VOLUME ["/sys/fs/cgroup"]
 
 CMD ["/sbin/init"]
