@@ -7,4 +7,5 @@ Copy Dockerfile somewhere and build the image:
 `$ docker build --rm -t <username>/systemd .`
 
 And launch the systemd container:
-`docker run -it  <username>/systemd`
+`docker run -d --name systemd --tmpfs /tmp --tmpfs /run --tmpfs /run/lock -v /sys/fs/cgroup:/sys/fs/cgroup:ro <username>/systemd`
+`docker exec -it systemd bash`
