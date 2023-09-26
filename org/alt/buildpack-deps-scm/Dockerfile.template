@@ -1,0 +1,12 @@
+FROM {{ registry }}{{ organization }}/buildpack-deps-curl:{{ branch }}
+
+MAINTAINER alt-cloud
+
+
+{{ install_pakages(
+    "git",
+    "mercurial",
+    "openssh-clients",
+    "procps",
+    "subversion"
+) }}
