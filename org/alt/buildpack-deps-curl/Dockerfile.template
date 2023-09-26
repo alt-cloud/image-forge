@@ -1,0 +1,10 @@
+FROM {{ registry }}{{ alt_image }}:{{ branch }}
+
+MAINTAINER alt-cloud
+
+{{ install_pakages(
+    "ca-certificates",
+    "curl",
+    "gnupg",
+    "wget"
+) }}
