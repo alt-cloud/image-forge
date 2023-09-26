@@ -1,0 +1,12 @@
+FROM {{ registry }}{{ organization }}/buildpack-deps:{{ branch }}
+
+MAINTAINER alt-cloud
+
+RUN groupadd --gid 1000 node \
+    && useradd --uid 1000 --gid node --shell /bin/bash --create-home node
+
+{{ install_pakages(
+    "node",
+    "npm",
+    "yarn"
+) }}
