@@ -1,3 +1,6 @@
+["alt/buildpack-deps"]
+skip-branches = [ "p9" ]
+
 ["alt/distroless-base"]
 skip-branches = [ "p9" ]
 
@@ -17,6 +20,9 @@ skip-branches = [ "p9" ]
 skip-branches = [ "p9" ]
 
 ["alt/gitea"]
+skip-branches = [ "p9" ]
+
+["alt/node"]
 skip-branches = [ "p9" ]
 
 ["alt/unit"]
