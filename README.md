@@ -25,3 +25,10 @@ the organization `<ORGANIZATION>`, run:
 ./build.py -i alt/distroless-false --overwrite-organization <ORGANIZATION>
 ```
 If you push to the users repository, then organiztion is your username.
+
+## Dependencies
+On x86_64 machine using p10 branch you need:
+- `python3-module-tomli`
+- `qemu-user-static-binfmt-aarch64` to build for arm64 architecture
+- `qemu-user-static-binfmt-arm` to build for arm architecture
+- `qemu-user-static-binfmt-ppc` to build for ppc64le architecture
