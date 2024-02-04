@@ -1,0 +1,9 @@
+FROM {{ registry }}{{ alt_image }}:{{ branch }}
+
+MAINTAINER alt-cloud
+
+{{ install_pakages(
+    "k8s-trivy-node-collector"
+) }}
+
+ENTRYPOINT ["k8s-trivy-node-collector"]
