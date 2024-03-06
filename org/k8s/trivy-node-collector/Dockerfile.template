@@ -6,4 +6,6 @@ MAINTAINER alt-cloud
     "k8s-trivy-node-collector"
 ) }}
 
-ENTRYPOINT ["k8s-trivy-node-collector"]
+RUN ln -s /usr/bin/k8s-trivy-node-collector /usr/bin/node-collector
+
+ENTRYPOINT ["node-collector"]
